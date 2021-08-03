@@ -1,0 +1,11 @@
+.status {
+  composes: card from "../UI/Card.module.css";
+  width: 250px;
+  font-weight: "bold";
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+
+  padding: 0.5rem;
+  margin: 1rem 0;
+}

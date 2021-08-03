@@ -1,0 +1,46 @@
+.statusDate {
+  composes: card from "../UI/Card.module.css";
+  display: flex;
+  flex-direction: column;
+  width: 5.5rem;
+  height: 5.5rem;
+  border: 1px solid #ececec;
+  background-color: #2a2a2a;
+  color: white;
+  border-radius: 12px;
+  align-items: center;
+  justify-content: center;
+}
+
+.redDate {
+  composes: statusDate;
+  background-color: red;
+}
+
+.greenDate {
+  composes: statusDate;
+  background-color: green;
+}
+
+.month {
+  font-size: 0.75rem;
+  font-weight: bold;
+}
+
+.year {
+  font-size: 0.75rem;
+}
+
+.date {
+  font-size: 0.75rem;
+}
+
+.day {
+  font-size: 1.5rem;
+  font-weight: bold;
+}
+
+.time {
+  font-size: 1.5rem;
+  font-weight: bold;
+}
