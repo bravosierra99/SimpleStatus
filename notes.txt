@@ -1,0 +1,35 @@
+a status consists of a component, it's status, and a date.  
+components are hierarchical and therefore a component can have a parent and a component can have children.
+new status's over-rule old status
+if a component has children, it is the "worst" status of it's children.  Unless it is explicitely given a status
+
+components have a configuration, the configuration dictates children and parents
+the configuration dictates timeouts
+the configuration dictates colors associated with 
+
+configuration is sent programatically from the components
+a key identifies a component
+a key identifies a parent of a component
+a parent doesn't necessarily know it's children
+
+
+
+status = {
+	component-key: <string>
+	status: <enumeration>
+	dtg: <dtg>
+}
+
+configuration = {
+	component-key: <string>
+	parent-component-key: <string>
+	component-name: <string>
+	statuses: [<strings>]
+	timeout: <time_delta>
+}
+
+the backend will build the top down linkages when components are added (via adding a configuration)
+this will be used to determine the status of a component with children
+
+
+
