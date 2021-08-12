@@ -11,7 +11,7 @@ function StatusDate(props) {
 // t.format()
 
   return (
-    <div className={styles.greenDate}>
+    <div className={styles.statusDate} style={{backgroundColor : props.color}}>
       <div className={styles.time}>{time}</div>
       <div className={styles.date}>
         {day} {month} {year}

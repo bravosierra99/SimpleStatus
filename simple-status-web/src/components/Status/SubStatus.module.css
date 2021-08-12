@@ -1,0 +1,14 @@
+
+.subStatus {
+    height: 25px;
+    width: 25px;
+    background-color: #bbb;
+    border-radius: 50%;
+    display: inline-block;
+    vertical-align: baseline;
+    padding: 2px;
+    /* border: 10px transparent solid; */
+}
+.border {
+    border: 2px transparent solid;
+}

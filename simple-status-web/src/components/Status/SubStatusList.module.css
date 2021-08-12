@@ -1,0 +1,8 @@
+.substatus_list {
+    width:100%;
+    align-items:center;
+    display:flex;
+    align-items: flex-start;
+    padding:5px;
+    /* justify-content: space-around; */
+}

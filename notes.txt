@@ -24,7 +24,7 @@ configuration = {
 	component-key: <string>
 	parent-component-key: <string>
 	component-name: <string>
-	statuses: [<strings>]
+	statuses: [<string>:color]
 	timeout: <time_delta>
 }
 

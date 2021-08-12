@@ -8,18 +8,33 @@ const yesterday = new Date(today);
 // const today = "today";
 // const yesterday = "yesterday";
 
-yesterday.setDate(yesterday.getDate() - 1);
+yesterday.setDate(yesterday.getDate() - 1.5);
+yesterday.setTime(yesterday.getTime() - 1000 * 60 * 82);
+const DUMMY_SUBCOMPONENTS = [
+  {
+    name: 'subcomponent1',
+    date: today,
+    status: "green",
+    key: 'comp1.subcomp1',
+  },
+  {
+    name: 'subcomponent2',
+    date: today,
+    status: "red",
+    key: 'comp1.subcomp2',
+  },
+
+];
 const DUMMY_STATUSES = [
-  { name: "component1", date: today, status: "Green", key: "comp1" },
+  { name: "component1", date: today, status: "green", key: "comp1", subcomponents: DUMMY_SUBCOMPONENTS },
   {
     name: "component2",
-    date: today,
-    status: "Green",
+    date: yesterday,
+    status: "red",
     key: "comp2",
   },
 ];
 
-console.log(DUMMY_STATUSES);
 
 function App() {
   return (
