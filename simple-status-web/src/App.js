@@ -4,13 +4,11 @@ import StatusGrid from "./components/Status/StatusGrid";
 
 const today = new Date();
 const outside_of_timeout = new Date(today);
-const inside_of_timeout = new Date(today);
 
 // const today = "today";
 // const yesterday = "yesterday";
 
 outside_of_timeout.setDate(outside_of_timeout.getDate() - 1.5);
-inside_of_timeout.setDate(inside_of_timeout.getDate() - 5);
 
 outside_of_timeout.setTime(outside_of_timeout.getTime() - 1000 * 60 * 82);
 const DUMMY_SUBCOMPONENTS = [
@@ -74,14 +72,13 @@ const DUMMY_STATUSES = [
   },
   {
     name: "component3",
-    date: outside_of_timeout,
+    date: today,
     status: "red",
     status_message: "Failed to twiddle the thingamabob",
     config: {
       timeout_min: 1234,
       timeout_color: "yellow",
     },
-
     key: "comp3",
   },
   {
