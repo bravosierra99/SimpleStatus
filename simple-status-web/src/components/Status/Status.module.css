@@ -1,17 +1,33 @@
 .status {
   composes: card from "../UI/Card.module.css";
   width: 250px;
+  /* width:100%; */
   font-weight: "bold";
   display: flex;
-  flex-wrap:wrap;
-  justify-content: space-between;
+  flex-wrap: wrap;
+  justify-content: flex-start;
   align-items: center;
-  background-color : rgba(225, 0, 255, 0.178);
-
+  background-color: rgba(225, 0, 255, 0.178);
   padding: 0.5rem;
   margin: 1rem 0;
 }
 
 .border {
   border: 15px transparent solid;
+}
+
+.break {
+  flex-basis: 100%;
+}
+
+.button {
+  background-color: #4caf50; /* Green */
+  border: 10px transparent solid;
+  color: white;
+  padding: 15px 32px;
+  text-align: center;
+  text-decoration: none;
+  display: inline-block;
+  font-size: 16px;
+  border-radius: 12px;
 }

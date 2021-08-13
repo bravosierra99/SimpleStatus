@@ -15,9 +15,7 @@ function time_values(date) {
 
 function timed_out(date, timeout) {
   const today = new Date();
-  console.log(today + " " + date);
   const diff = Math.abs(today - date) / (1000 * 60);
-  console.log(diff + " " + timeout);
   return diff > timeout;
 }
 

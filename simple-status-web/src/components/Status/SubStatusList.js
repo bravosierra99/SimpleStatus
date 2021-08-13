@@ -2,7 +2,6 @@ import styles from "./SubStatusList.module.css";
 import SubStatus from "./SubStatus";
 
 function SubStatusList(props) {
-  console.log(props.statuses);
   const statuses = props.statuses ? (
     props.statuses.map((status) => (
       <SubStatus key={status.key} color={status.status} />
@@ -11,7 +10,7 @@ function SubStatusList(props) {
     <div></div>
   );
 
-  return <div className={styles.substatus_list}>{statuses}</div>;
+  return <div onClick={props.clickHandler} className={styles.substatus_list}>{statuses}</div>;
 }
 
 export default SubStatusList;
