@@ -14,6 +14,7 @@ outside_of_timeout.setTime(outside_of_timeout.getTime() - 1000 * 60 * 82);
 const DUMMY_SUBCOMPONENTS = [
   {
     name: "subcomponent1",
+    details: "I am the subcomponent, if I'm green then the following is true",
     date: today,
     status: "green",
     config: {
@@ -25,6 +26,7 @@ const DUMMY_SUBCOMPONENTS = [
   },
   {
     name: "subcomponent2",
+    details: "I am the subcomponent, if I'm green then the following is true",
     date: today,
     config: {
       timeout_min: 1234,
@@ -36,6 +38,7 @@ const DUMMY_SUBCOMPONENTS = [
   },
   {
     name: "subcomponent3",
+    details: "I am the subcomponent, if I'm green then the following is true",
     date: today,
     config: {
       timeout_min: 1234,
@@ -49,6 +52,7 @@ const DUMMY_SUBCOMPONENTS = [
 const DUMMY_STATUSES = [
   {
     name: "component1",
+    details: "I am the component blah, if I'm green then the following is true",
     date: today,
     status: "green",
     status_message: "Completed Run",
@@ -60,7 +64,8 @@ const DUMMY_STATUSES = [
     subcomponents: DUMMY_SUBCOMPONENTS,
   },
   {
-    name: "component2",
+    name: "component2_thegreatestcomponent",
+    details: "I am the component blah, if I'm green then the following is true",
     date: outside_of_timeout,
     status: "green",
     config: {
@@ -72,6 +77,7 @@ const DUMMY_STATUSES = [
   },
   {
     name: "component3",
+    details: "I am the component blah, if I'm green then the following is true",
     date: today,
     status: "red",
     status_message: "Failed to twiddle the thingamabob",
@@ -83,6 +89,7 @@ const DUMMY_STATUSES = [
   },
   {
     name: "component4",
+    details: "I am the component blah, if I'm green then the following is true",
     date: outside_of_timeout,
     status: "red",
     config: {
@@ -95,14 +102,14 @@ const DUMMY_STATUSES = [
   },
   {
     name: "component5",
-    date: outside_of_timeout,
-    status: "red",
+    details: "I am the component blah, if I'm green then the following is true",
+    date: today,
+    status: "yellow",
     config: {
       timeout_min: 1234,
       timeout_color: "yellow",
     },
-
-    status_message: "Failed to twiddle the thingamabob",
+    status_message: "warnings",
     key: "comp5",
   },
 ];

@@ -10,7 +10,7 @@ function time_values(date) {
   const year = date.getFullYear();
   const options = { hour: "2-digit", minute: "2-digit", hour12: false };
   const time = date.toLocaleTimeString("en-US", options);
-  return { month, day, year, options, time };
+  return { month, day, year, time };
 }
 
 function timed_out(date, timeout) {
@@ -22,7 +22,7 @@ function timed_out(date, timeout) {
 }
 
 function StatusDate(props) {
-  const { month, day, year, options, time } = time_values(props.date);
+  const { month, day, year, time } = time_values(props.date);
 
   const [open, setOpen] = useState(false);
   const closeModal = () => setOpen(false);
