@@ -12,7 +12,7 @@ function Status(props) {
     <div className={styles.border}>
       <div className={styles.status}>
         <h2>{props.name}</h2>
-        <StatusDate clickHandler={clickHandler} statusMessage={props.status_message} date={props.date} color={props.status} />
+        <StatusDate clickHandler={clickHandler} config={props.config} statusMessage={props.status_message} date={props.date} color={props.status} />
         <SubStatusList statuses={props.subcomponents} />
       </div>
     </div>
