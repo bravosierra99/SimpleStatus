@@ -4,15 +4,32 @@ import SubStatusList from "./SubStatusList";
 import StatusName from "./StatusName";
 import StatusGrid from "./StatusGrid";
 import { useState } from "react";
-
+import { CSSTransition } from "react-transition-group";
+import "./Status.css";
 
 function Status(props) {
   const subs = props.subcomponents ? props.subcomponents : [];
   const [expanded, setexpanded] = useState(false);
-  console.log("expanded & subs")
   const substatus =
     expanded && subs ? (
-      <StatusGrid style={{ width: "100%" }} statuses={subs} />
+      <CSSTransition
+        in={expanded}
+        classNames={{
+          appear: "my-appear",
+          appearActive: "my-active-appear",
+          appearDone: "my-done-appear",
+          enter: "my-enter",
+          enterActive: "my-active-enter",
+          enterDone: "my-done-enter",
+          exit: "my-exit",
+          exitActive: "my-active-exit",
+          exitDone: "my-done-exit",
+        }}
+        timeout={300}
+        unmountOnExit
+      >
+        <StatusGrid style={{ width: "fit-content" }} statuses={subs} />
+      </CSSTransition>
     ) : (
       <SubStatusList
         clickHandler={() => setexpanded(!expanded)}
@@ -20,12 +37,17 @@ function Status(props) {
         statuses={props.subcomponents}
       />
     );
-    console.log(expanded)
-    const collapseButton = expanded ? <div className={styles.border}><button className={styles.button} onClick={()=>setexpanded(!expanded)}>collapse</button></div> : null
+  const collapseButton = expanded ? (
+    <div className={styles.border}>
+      <button className={styles.button} onClick={() => setexpanded(!expanded)}>
+        collapse
+      </button>
+    </div>
+  ) : null;
   return (
     <div className={styles.border}>
       {/* <div className={styles.status}> */}
-      <div style={{ width: "100%" }} className={styles.status}>
+      <div style={{ width: "fit-content" }} className={styles.status}>
         <StatusName name={props.name} details={props.details} />
         <StatusDate
           clickHandler={setexpanded}

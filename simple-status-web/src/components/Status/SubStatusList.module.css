@@ -1,5 +1,5 @@
 .substatus_list {
-    width:100%;
+    width:fit-content;
     align-items:center;
     display:flex;
     align-items: flex-start;
