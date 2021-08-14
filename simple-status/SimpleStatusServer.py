@@ -10,7 +10,7 @@ from typing import Optional
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 
-logging.basicConfig(filename="SimpleStatusServer.log", level=logging.DEBUG)
+logging.basicConfig(filename="files/SimpleStatusServer.log", level=logging.DEBUG)
 
 
 class Colors(Enum):
@@ -52,6 +52,7 @@ STATUSES_LOCK = asyncio.Lock()
 
 @app.post("/components/{component_key}/config")
 async def set_config(component_key: int, config: ConfigIn):
+    global CONFIGS
     config_dict = json.loads(config.json())
     if config.parent_key:
         try:
@@ -62,30 +63,54 @@ async def set_config(component_key: int, config: ConfigIn):
                                        "config prior to you sending yours")
         # walk down from the top of the configs to get to where we want to insert our config
         parent = None
-        with CONFIGS_LOCK:
+        async with CONFIGS_LOCK:
             if parent_chain:
                 current_config: ConfigStored = CONFIGS[parent_chain[0]]
-                for component_key in parent_chain:
+                for key in parent_chain[1:] + [config.parent_key]:
                     try:
-                        current_config = current_config[component_key]
+                        current_config = current_config.subcomponents[key]
                     except KeyError as _:
                         logging.exception(
                             f"fthis should not happen, it means your parent chain was corrupted as we were not able "
-                            f"to find a config for one of your parents: original {config.key}, parent_chain "
+                            f"to find a config for one of your parents: original {component_key}, parent_chain "
                             f"{parent_chain}, failed on {current_config}")
                         raise HTTPException(
                             "An error occurred due to data corruption, please contact the developer.  Further "
                             "information in server logs")
+            else:
+                current_config: ConfigStored = CONFIGS[config.parent_key]
             # ok we have where we want to insert our new config
-            stored_config = ConfigStored(**config_dict, key=component_key, parent_key=current_config.key)
-            current_config.subcomponents[component_key] = stored_config
+            stored_config = ConfigStored(**config_dict, key=component_key)
+            #if we already have a config we don't want to lose the subcomponents
+            if component_key in current_config.subcomponents:
+                stored_config.subcomponents = current_config.subcomponents[component_key].subcomponents
+            else:
+                current_config.subcomponents[component_key] = stored_config
             parent = current_config.name
+            await add_component(component_key, config.parent_key, parent_chain)
     else:
-        parent = 0
-        config_dict["parent_key"]= parent
+        parent = "None"
+        parent_key = 0
+        config_dict["parent_key"]= parent_key
+        await add_component(component_key, parent_key)
         stored_config = ConfigStored(**config_dict, key=component_key)
+        CONFIGS[component_key] = stored_config
 
     return {"config": stored_config, "parent": parent}
+
+
+async def add_component(component_key, parent_key, parent_chain=None):
+    global COMPONENTS
+    if not parent_chain:
+        parent_chain = list()
+    async with COMPONENTS_LOCK:
+        # add a component with an updated chain
+        if parent_key:
+            COMPONENTS[component_key] = parent_chain + [parent_key]
+        else:
+            COMPONENTS[component_key] = parent_chain
+
+
 
 
 
