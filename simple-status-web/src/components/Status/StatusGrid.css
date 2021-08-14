@@ -1,0 +1,15 @@
+
+.statusGrid-enter {
+    opacity: 0;
+  }
+  .statusGrid-enter-active {
+    opacity: 1;
+    transition: opacity 200ms;
+  }
+  .statusGrid-exit {
+    opacity: 1;
+  }
+  .statusGrid-exit-active {
+    opacity: 0;
+    transition: opacity 200ms;
+  }
