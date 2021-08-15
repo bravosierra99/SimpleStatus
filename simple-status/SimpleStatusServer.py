@@ -1,58 +1,36 @@
 # for recursive definitions
 from __future__ import annotations
 
-import asyncio
 import json
 import logging
-from enum import Enum
-from typing import Optional
 
 from fastapi import FastAPI, HTTPException
-from pydantic import BaseModel
 
-logging.basicConfig(filename="files/SimpleStatusServer.log", level=logging.DEBUG)
+import persistence
+from models import ConfigIn, ConfigStored, StatusIn
+from persistence import COMPONENTS, COMPONENTS_LOCK, CONFIGS_LOCK, STATUSES_LOCK, MODIFIED_LOCK
 
-
-class Colors(Enum):
-    green = "green"
-    yellow = "yellow"
-    red = "red"
-
-
-class ConfigIn(BaseModel):
-    name: str
-    parent_key: Optional[int]
-    details: str
-    timeout_min: int
-    timeout_color: Colors
-
-
-class ConfigStored(BaseModel):
-    key: int
-    name: str
-    parent_key: Optional[int]
-    details: str
-    timeout_min: int
-    timeout_color: Colors
-    subcomponents: dict = dict()
-
+logging.basicConfig(filename=r"D:\Users\ben\Documents\telework\SimpleStatus\simple-status\files\SimpleStatusServer.log", level=logging.DEBUG)
 
 app = FastAPI()
 
 # these global objects will represent my current datastore... you could switch to something more databasey in the future
-COMPONENTS = {}
-COMPONENTS_LOCK = asyncio.Lock()
 
-CONFIGS = {}
-CONFIGS_LOCK = asyncio.Lock()
-
-STATUSES = {}
-STATUSES_LOCK = asyncio.Lock()
+async def add_component(component_key, parent_key, parent_chain=None):
+    if not parent_chain:
+        parent_chain = list()
+    async with COMPONENTS_LOCK:
+        # add a component with an updated chain
+        if parent_key:
+            persistence.COMPONENTS[component_key] = parent_chain + [parent_key]
+        else:
+            persistence.COMPONENTS[component_key] = parent_chain
+        async with MODIFIED_LOCK:
+            persistence.MODIFIED = True
 
 
 @app.post("/components/{component_key}/config")
 async def set_config(component_key: int, config: ConfigIn):
-    global CONFIGS
     config_dict = json.loads(config.json())
     if config.parent_key:
         try:
@@ -65,7 +43,7 @@ async def set_config(component_key: int, config: ConfigIn):
         parent = None
         async with CONFIGS_LOCK:
             if parent_chain:
-                current_config: ConfigStored = CONFIGS[parent_chain[0]]
+                current_config: ConfigStored = persistence.CONFIGS[parent_chain[0]]
                 for key in parent_chain[1:] + [config.parent_key]:
                     try:
                         current_config = current_config.subcomponents[key]
@@ -78,10 +56,10 @@ async def set_config(component_key: int, config: ConfigIn):
                             "An error occurred due to data corruption, please contact the developer.  Further "
                             "information in server logs")
             else:
-                current_config: ConfigStored = CONFIGS[config.parent_key]
+                current_config: ConfigStored = persistence.CONFIGS[config.parent_key]
             # ok we have where we want to insert our new config
             stored_config = ConfigStored(**config_dict, key=component_key)
-            #if we already have a config we don't want to lose the subcomponents
+            # if we already have a config we don't want to lose the subcomponents
             if component_key in current_config.subcomponents:
                 stored_config.subcomponents = current_config.subcomponents[component_key].subcomponents
             else:
@@ -91,33 +69,33 @@ async def set_config(component_key: int, config: ConfigIn):
     else:
         parent = "None"
         parent_key = 0
-        config_dict["parent_key"]= parent_key
+        config_dict["parent_key"] = parent_key
         await add_component(component_key, parent_key)
         stored_config = ConfigStored(**config_dict, key=component_key)
-        CONFIGS[component_key] = stored_config
-
+        persistence.CONFIGS[component_key] = stored_config
     return {"config": stored_config, "parent": parent}
-
-
-async def add_component(component_key, parent_key, parent_chain=None):
-    global COMPONENTS
-    if not parent_chain:
-        parent_chain = list()
-    async with COMPONENTS_LOCK:
-        # add a component with an updated chain
-        if parent_key:
-            COMPONENTS[component_key] = parent_chain + [parent_key]
-        else:
-            COMPONENTS[component_key] = parent_chain
 
 
 
 
 
 @app.post("/components/{component_key}/status")
-async def set_status(component_key: int):
-    return {"component_key": component_key, "config": {"some_config": "some_value"}}
+async def set_status(component_key: int, status: StatusIn):
+    async with STATUSES_LOCK:
+        persistence.STATUSES.get(component_key, list).append(status)
+        async with MODIFIED_LOCK:
+            persistence.MODIFIED = True
 
+    return {"component_key": component_key, "status": status}
+
+
+@app.get("/components/status")
+async def get_statuses(response_model=None):
+    pass
+
+@app.get("/ping")
+def pong():
+    return {"ping": "pong!"}
 
 #
 # @app.get("/models/{model_name}")
