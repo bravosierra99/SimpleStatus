@@ -9,6 +9,7 @@ import "./Status.css";
 
 function Status(props) {
   const subs = props.subcomponents ? props.subcomponents : [];
+  const date = typeof(props.date) === "date" ? props.date : new Date(props.date)
   const [expanded, setexpanded] = useState(false);
   const substatus =
     expanded && subs ? (
@@ -53,7 +54,7 @@ function Status(props) {
           clickHandler={setexpanded}
           config={props.config}
           statusMessage={props.status_message}
-          date={props.date}
+          date={date}
           color={props.status}
         />
         {collapseButton}

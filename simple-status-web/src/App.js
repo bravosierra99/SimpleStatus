@@ -162,7 +162,8 @@ function App() {
   return (
     <div>
       <h2>Simple Status Server (Keep it Simple, Stupid)</h2>
-      <StatusGrid statuses={DUMMY_STATUSES} />
+      <StatusGrid  />
+      {/* <StatusGrid statuses={DUMMY_STATUSES} /> */}
     </div>
   );
 }
