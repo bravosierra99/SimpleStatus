@@ -12,6 +12,8 @@ outside_of_timeout.setDate(outside_of_timeout.getDate() - 1.5);
 
 outside_of_timeout.setTime(outside_of_timeout.getTime() - 1000 * 60 * 82);
 
+/* eslint-disable no-unused-vars */
+
 const DUMMY_SUB_SUBCOMPONENTS = [
   {
     name: "subsubcomponent1",
@@ -157,6 +159,9 @@ const DUMMY_STATUSES = [
     key: "comp5",
   },
 ];
+
+
+/* eslint-enable no-unused-vars */
 
 function App() {
   return (
