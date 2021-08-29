@@ -85,6 +85,12 @@ async def set_config(component_key: int, config: ConfigIn):
 @app.post("/components/{component_key}/status")
 async def set_status(component_key: int, status: StatusIn):
     # json_status = jsonable_encoder(status)
+    async with CONFIGS_LOCK:
+        try:
+            persistence.CONFIGS[component_key]
+        except KeyError:
+            raise HTTPException(status_code=404,
+                                detail="There is no configuration for that key, you must have a configuration for that key in order to send a status for it")
     async with STATUSES_LOCK:
         status_list = persistence.STATUSES[component_key]
         status_list.append(status)
@@ -105,7 +111,7 @@ async def parse_configs_for_statuses(configs):
         status_list = persistence.STATUSES[config.key]
         if not status_list:
             return []
-        status = status_list[0]
+        status = status_list[-1]
         built_status = await  build_status(config, status)
         substatuses = await parse_configs_for_statuses(config.subcomponents.values())
         built_status.subcomponents = substatuses
