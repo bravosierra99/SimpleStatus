@@ -1,6 +1,6 @@
 from starlette.testclient import TestClient
 
-from SimpleStatusServer import app
+from SimpleStatusServer import frontend_app
 
 
 

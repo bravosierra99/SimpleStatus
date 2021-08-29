@@ -7,6 +7,9 @@ from typing import List
 
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
+# from starlette.staticfiles import StaticFiles
+from starlette.responses import FileResponse, RedirectResponse
 
 import persistence
 from models import ConfigIn, ConfigStored, StatusIn, ComponentStatusOut, ComponentTimeoutConfig
@@ -15,11 +18,13 @@ from persistence import COMPONENTS, COMPONENTS_LOCK, CONFIGS_LOCK, STATUSES_LOCK
 logging.basicConfig(filename=r"D:\Users\ben\Documents\telework\SimpleStatus\simple-status\files\SimpleStatusServer.log",
                     level=logging.DEBUG)
 
-app = FastAPI()
-origins = ["http://localhost", "http://localhost:3000", "http://localhost:3001"]
+frontend_app = FastAPI()
+api_app = FastAPI()
+main_app = FastAPI()
+# origins = ["http://localhost", "http://localhost:3000", "http://localhost:3001", "http://127.0.0.1:3000","http://127.0.0.1:3001"]
 origins = ["*"]
-app.add_middleware(CORSMiddleware, allow_origins=origins, allow_credentials=True, allow_methods=["*"],
-                   allow_headers=["*"])
+main_app.add_middleware(CORSMiddleware, allow_origins=origins, allow_credentials=True, allow_methods=["*"],
+                            allow_headers=["*"])
 
 
 async def add_component(component_key, parent_key, parent_chain=None):
@@ -35,7 +40,7 @@ async def add_component(component_key, parent_key, parent_chain=None):
             persistence.MODIFIED = True
 
 
-@app.post("/components/{component_key}/config")
+@api_app.post("/components/{component_key}/config")
 async def set_config(component_key: int, config: ConfigIn):
     config_dict = json.loads(config.json())
     if config.parent_key:
@@ -82,7 +87,7 @@ async def set_config(component_key: int, config: ConfigIn):
     return {"config": stored_config, "parent": parent}
 
 
-@app.post("/components/{component_key}/status")
+@api_app.post("/components/{component_key}/status")
 async def set_status(component_key: int, status: StatusIn):
     # json_status = jsonable_encoder(status)
     async with CONFIGS_LOCK:
@@ -99,7 +104,7 @@ async def set_status(component_key: int, status: StatusIn):
     return {"component_key": component_key, "status": status}
 
 
-@app.get("/components/statuses", response_model=List[ComponentStatusOut])
+@api_app.get("/components/statuses", response_model=List[ComponentStatusOut])
 async def get_statuses():
     async with STATUSES_LOCK as a, CONFIGS_LOCK as b:
         return await parse_configs_for_statuses(persistence.CONFIGS.values())
@@ -127,10 +132,27 @@ async def build_status(config: ConfigStored, status: StatusIn):
     return component_status
 
 
-@app.get("/ping")
+@api_app.get("/ping")
 def pong():
     return {"ping": "pong!"}
 
+main_app.mount("/api", api_app)
+
+@frontend_app.middleware("http")
+async def add_custom_header(request, call_next):
+    response = await call_next(request)
+    if response.status_code == 404:
+        return RedirectResponse("/index.html")
+    return response
+
+@frontend_app.exception_handler(404)
+def not_found(request, exc):
+    return RedirectResponse("/index.html")
+
+
+frontend_app.mount("/", StaticFiles(directory=r"D:\Users\ben\Documents\telework\SimpleStatus\simple-status-web\build"), name="static")
+main_app.mount("/",frontend_app)
+main_app.mount("/api", api_app)
 
 #
 # @app.get("/models/{model_name}")
@@ -141,4 +163,4 @@ def pong():
 if __name__ == "__main__":
     import uvicorn
 
-    uvicorn.run(app, host="0.0.0.0", port=8001)
+    uvicorn.run(main_app, host="0.0.0.0", port=8001)
