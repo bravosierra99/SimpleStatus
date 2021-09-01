@@ -14,17 +14,26 @@ from starlette.responses import FileResponse, RedirectResponse
 import persistence
 from models import ConfigIn, ConfigStored, StatusIn, ComponentStatusOut, ComponentTimeoutConfig
 from persistence import COMPONENTS, COMPONENTS_LOCK, CONFIGS_LOCK, STATUSES_LOCK, MODIFIED_LOCK
+import dotenv
+from os import environ
 
-logging.basicConfig(filename=r"D:\Users\ben\Documents\telework\SimpleStatus\simple-status\files\SimpleStatusServer.log",
+dotenv.load_dotenv(".env")
+
+LOGGING_PATH=environ["LOGGING_PATH"]
+PORT=environ["PORT"]
+STATIC_PATH=environ["STATIC_PATH"]
+
+
+logging.basicConfig(filename=LOGGING_PATH,
                     level=logging.DEBUG)
 
 frontend_app = FastAPI()
 api_app = FastAPI()
-main_app = FastAPI()
+app = FastAPI()
 # origins = ["http://localhost", "http://localhost:3000", "http://localhost:3001", "http://127.0.0.1:3000","http://127.0.0.1:3001"]
 origins = ["*"]
-main_app.add_middleware(CORSMiddleware, allow_origins=origins, allow_credentials=True, allow_methods=["*"],
-                            allow_headers=["*"])
+app.add_middleware(CORSMiddleware, allow_origins=origins, allow_credentials=True, allow_methods=["*"],
+                   allow_headers=["*"])
 
 
 async def add_component(component_key, parent_key, parent_chain=None):
@@ -136,7 +145,7 @@ async def build_status(config: ConfigStored, status: StatusIn):
 def pong():
     return {"ping": "pong!"}
 
-main_app.mount("/api", api_app)
+app.mount("/api", api_app)
 
 @frontend_app.middleware("http")
 async def add_custom_header(request, call_next):
@@ -150,9 +159,9 @@ def not_found(request, exc):
     return RedirectResponse("/index.html")
 
 
-frontend_app.mount("/", StaticFiles(directory=r"D:\Users\ben\Documents\telework\SimpleStatus\simple-status-web\build"), name="static")
-main_app.mount("/",frontend_app)
-main_app.mount("/api", api_app)
+frontend_app.mount("/", StaticFiles(directory=STATIC_PATH), name="static")
+app.mount("/", frontend_app)
+app.mount("/api", api_app)
 
 #
 # @app.get("/models/{model_name}")
@@ -163,4 +172,4 @@ main_app.mount("/api", api_app)
 if __name__ == "__main__":
     import uvicorn
 
-    uvicorn.run(main_app, host="0.0.0.0", port=8001)
+    uvicorn.run(app, host="0.0.0.0", port=PORT)

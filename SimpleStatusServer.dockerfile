@@ -1,23 +1,26 @@
+#theoretically optomized for all things fastapi
 FROM tiangolo/uvicorn-gunicorn-fastapi:python3.8
 
-EXPOSE 80
-EXPOSE 8000
 
-RUN apt-get update && apt-get -yq install npm
+#all initialization that hopefully will change infrequently
+RUN apt-get update && apt-get -yq install npm node.js
+RUN python -m pip install aiofiles
 
 
+#make a directory for the static files and install dependencies
 RUN mkdir /SimpleStatusWeb
-WORKDIR /
-
-COPY ./simple-status /app
-COPY ./simple-status-web /SimpleStatusWeb
-WORKDIR /SimpleStatus
-
-RUN ls
-#CMD ["uvicorn", "SimpleStatus/SimpleStatusServer:app", "--host", "0.0.0.0", "--port", "8000"]
-
+COPY ./simple-status-web/package*.json /SimpleStatusWeb/
 WORKDIR /SimpleStatusWeb
-
 RUN npm install
-ENV PORT=8080
-RUN npm build --production
+
+#ok now copy over the static files
+COPY ./simple-status /app
+COPY ./simple-status-web/ /SimpleStatusWeb
+RUN npm run build 
+
+
+#settings that theoretically should not change
+EXPOSE 80
+ENV PORT=80
+ENV LOGGING_PATH=/tmp/ss.log
+ENV STATIC_PATH=/SimpleStatusWeb/build

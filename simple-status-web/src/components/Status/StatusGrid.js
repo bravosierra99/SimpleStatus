@@ -9,7 +9,7 @@ function StatusGrid(props) {
   // }
 
   useEffect(() => {
-  fetch("http://localhost:8001/api/components/statuses")
+  fetch("http://localhost/api/components/statuses")
     .then((statuses) => {
       return statuses.json();
     })
