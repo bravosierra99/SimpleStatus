@@ -20,7 +20,7 @@ from os import environ
 dotenv.load_dotenv(".env")
 
 LOGGING_PATH=environ["LOGGING_PATH"]
-PORT=environ["PORT"]
+PORT=int(environ["PORT"])
 STATIC_PATH=environ["STATIC_PATH"]
 
 
@@ -92,7 +92,8 @@ async def set_config(component_key: int, config: ConfigIn):
         config_dict["parent_key"] = parent_key
         await add_component(component_key, parent_key)
         stored_config = ConfigStored(**config_dict, key=component_key)
-        persistence.CONFIGS[component_key] = stored_config
+        async with CONFIGS_LOCK:
+            persistence.CONFIGS[component_key] = stored_config
     return {"config": stored_config, "parent": parent}
 
 
