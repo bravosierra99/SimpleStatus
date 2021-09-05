@@ -25,6 +25,8 @@ OR
 
 _in this case you would need to rebuild the image any time you make changes... so it's more of a pain but it will match the final result_
 
+**If you change models.py you _MUST_ copy it to the Client repo** [Client](https://github.com/bravosierra99/SimpleStatusClient)
+
 ## Gotchas
 - when in doubt, ctrl-f5 to reload your app, to flush out cashed files
 - if you make changes to the front end, you must rerun `npm run build`
