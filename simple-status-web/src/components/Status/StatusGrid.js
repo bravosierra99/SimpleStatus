@@ -14,14 +14,15 @@ function StatusGrid(props) {
       return statuses.json();
     })
     .then((data) => {
-      const StatusObjects = data.map((status) => {
+      let StatusObjects = data.map((status) => {
         return <Status {...status} />;
       });
+      
       setStatuses(StatusObjects);
     });
 
   },[])
-  const [Statuses, setStatuses] = useState([]);
+  const [Statuses, setStatuses] = useState(<h3>No Statuses have been submitted yet</h3>);
 
   const statuses = props.statuses
     ? props.statuses.map((status) => <Status {...status} />)
