@@ -10,6 +10,8 @@
   border-radius: 12px;
   align-items: center;
   justify-content: center;
+  text-shadow: -1px 1px 2px #000, 1px 1px 2px #000, 1px -1px 0 #000,
+    -1px -1px 0 #000;
 }
 
 .redDate {
@@ -53,7 +55,8 @@
   font-size: 1.5rem;
   font-weight: var(--ifm-font-weight-bold);
   line-height: 1;
-  opacity: .5;
+  opacity: 0.5;
   padding: 1rem;
-  transition: opacity var(--ifm-transition-fast) var(--ifm-transition-timing-default);
+  transition: opacity var(--ifm-transition-fast)
+    var(--ifm-transition-timing-default);
 }

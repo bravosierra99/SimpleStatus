@@ -8,12 +8,12 @@ function StatusName(props) {
   const closeModal = () => setOpen(false);
 
   return (
-    <u>
+    <>
       <h2 className={styles.name} onClick={() => setOpen((o) => !o)}>{props.name}</h2>
       <Popup open={open} closeOnDocumentClick onClose={closeModal}>
         <div className="modal">{props.details}</div>
       </Popup>
-    </u>
+    </>
   );
 }
 

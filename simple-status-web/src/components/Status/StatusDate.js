@@ -16,7 +16,7 @@ function time_values(date) {
 function timed_out(date, timeout) {
   const today = new Date();
   const diff = Math.abs(today - date) / (1000 * 60);
-  return diff > timeout;
+  return timeout ? diff > timeout : false;
 }
 
 function StatusDate(props) {
@@ -26,9 +26,9 @@ function StatusDate(props) {
   const closeModal = () => setOpen(false);
   const timed_out_result = timed_out(props.date, props.config.timeout_min);
   const color =
-    timed_out_result && props.color === "green"
+    timed_out_result && (props.color === "green" || props.color === "yellow")
       ? props.config.timeout_color
-      : props.color;
+      : props.color ;
   const timed_out_message = timed_out_result ? (
     <div>
       <br />
