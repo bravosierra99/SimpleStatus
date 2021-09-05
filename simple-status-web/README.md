@@ -1,3 +1,34 @@
+# Simple Status Server
+
+You should only be here if you are specifically interested in contributing to the Simple Status Server.  Otherwise you should simple download the docker container from [SimpleStatusServer](https://hub.docker.com/r/bravosierra99/simple-status-server)
+
+or using `docker pull bravosierra99/simple-status-server`
+
+## Building Locally
+
+- cd /simple-status-web 
+- npm install
+- npm run build
+- cd /simple-status
+- py -m venv .venv
+- .venv/scripts/activate -- _adjust per your terminal_
+- python -m pip install -r requirements.txt
+- create and edit a .env file
+  - PORT=80
+  - LOGGING_PATH
+  - STATIC_PATH -- _should be the path to the build folder from the `npm run build` command from earlier
+- python SimpleStatusServer.py || uvicorn main:app --reload -- _either will work, and should functionally be the same_
+
+OR
+- `docker build -t bravosierra99/simple-status-server -f SimpleStatusServer.dockerfile`
+- `docker run -dp 80:80 bravosierra99/simple-status-server`
+
+_in this case you would need to rebuild the image any time you make changes... so it's more of a pain but it will match the final result_
+
+## Gotchas
+- when in doubt, ctrl-f5 to reload your app, to flush out cashed files
+- if you make changes to the front end, you must rerun `npm run build`
+
 # Getting Started with Create React App
 
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
