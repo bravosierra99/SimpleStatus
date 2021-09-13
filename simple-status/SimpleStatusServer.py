@@ -8,6 +8,11 @@ from typing import List
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
+from fastapi.openapi.docs import (
+    get_redoc_html,
+    get_swagger_ui_html,
+    get_swagger_ui_oauth2_redirect_html,
+)
 # from starlette.staticfiles import StaticFiles
 from starlette.responses import FileResponse, RedirectResponse
 
@@ -22,13 +27,14 @@ dotenv.load_dotenv(".env")
 LOGGING_PATH=environ["LOGGING_PATH"]
 PORT=int(environ["PORT"])
 STATIC_PATH=environ["STATIC_PATH"]
+SWAGGER_STATIC_PATH=environ["SWAGGER_STATIC_PATH"]
 
 
 logging.basicConfig(filename=LOGGING_PATH,
                     level=logging.DEBUG)
 
 frontend_app = FastAPI()
-api_app = FastAPI()
+api_app = FastAPI(docs_url=None, redoc_url=None)
 app = FastAPI()
 # origins = ["http://localhost", "http://localhost:3000", "http://localhost:3001", "http://127.0.0.1:3000","http://127.0.0.1:3001"]
 origins = ["*"]
@@ -159,6 +165,33 @@ async def add_custom_header(request, call_next):
 def not_found(request, exc):
     return RedirectResponse("/index.html")
 
+# mounting static swagger/redoc files
+api_app.mount("/static",StaticFiles(directory=SWAGGER_STATIC_PATH), name="static")
+
+@api_app.get("/docs", include_in_schema=False)
+async def custom_swagger_ui_html():
+    return get_swagger_ui_html(
+        # openapi_url=api_app.openapi_url,
+        openapi_url="/api" + api_app.openapi_url,
+        title=api_app.title + " - Swagger UI",
+        oauth2_redirect_url=api_app.swagger_ui_oauth2_redirect_url,
+        swagger_js_url="/api/static/swagger-ui-bundle.js",
+        swagger_css_url="/api/static/swagger-ui.css",
+    )
+
+
+@api_app.get(app.swagger_ui_oauth2_redirect_url, include_in_schema=False)
+async def swagger_ui_redirect():
+    return get_swagger_ui_oauth2_redirect_html()
+
+
+@api_app.get("/redoc", include_in_schema=False)
+async def redoc_html():
+    return get_redoc_html(
+        openapi_url="/api" + api_app.openapi_url,
+        title=api_app.title + " - ReDoc",
+        redoc_js_url="/api/static/redoc.standalone.js",
+    )
 
 frontend_app.mount("/", StaticFiles(directory=STATIC_PATH), name="static")
 app.mount("/", frontend_app)

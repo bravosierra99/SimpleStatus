@@ -9,6 +9,14 @@ RUN python -m pip install aiofiles
 
 #make a directory for the static files and install dependencies
 RUN mkdir /SimpleStatusWeb
+
+##we need local copies of swagger and redoc js/css files
+RUN mkdir /SimpleStatusWeb/swagger
+WORKDIR /SimpleStatusWeb/swagger
+RUN wget https://cdn.jsdelivr.net/npm/swagger-ui-dist@3/swagger-ui-bundle.js
+RUN wget https://cdn.jsdelivr.net/npm/swagger-ui-dist@3/swagger-ui.css
+RUN wget https://cdn.jsdelivr.net/npm/redoc@next/bundles/redoc.standalone.js
+
 COPY ./simple-status-web/package*.json /SimpleStatusWeb/
 WORKDIR /SimpleStatusWeb
 RUN npm install
@@ -24,3 +32,4 @@ EXPOSE 80
 ENV PORT=80
 ENV LOGGING_PATH=/tmp/ss.log
 ENV STATIC_PATH=/SimpleStatusWeb/build
+ENV STATIC_PATH=/SimpleStatusWeb/swagger
