@@ -5,7 +5,7 @@ import json
 import logging
 from typing import List
 
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.openapi.docs import (
@@ -33,9 +33,12 @@ SWAGGER_STATIC_PATH=environ["SWAGGER_STATIC_PATH"]
 logging.basicConfig(filename=LOGGING_PATH,
                     level=logging.DEBUG)
 
-frontend_app = FastAPI()
-api_app = FastAPI(docs_url=None, redoc_url=None)
-app = FastAPI()
+debug = False
+debug = True
+
+frontend_app = FastAPI(title="frontend",docs_url=None, redoc_url=None, debug=debug)
+api_app = FastAPI(title="api",docs_url=None, redoc_url=None, debug=debug )
+app = FastAPI(title="main",docs_url=None, redoc_url=None, debug=debug)
 # origins = ["http://localhost", "http://localhost:3000", "http://localhost:3001", "http://127.0.0.1:3000","http://127.0.0.1:3001"]
 origins = ["*"]
 app.add_middleware(CORSMiddleware, allow_origins=origins, allow_credentials=True, allow_methods=["*"],
@@ -152,18 +155,17 @@ async def build_status(config: ConfigStored, status: StatusIn):
 def pong():
     return {"ping": "pong!"}
 
-app.mount("/api", api_app)
 
-@frontend_app.middleware("http")
-async def add_custom_header(request, call_next):
-    response = await call_next(request)
-    if response.status_code == 404:
-        return RedirectResponse("/index.html")
-    return response
-
-@frontend_app.exception_handler(404)
-def not_found(request, exc):
-    return RedirectResponse("/index.html")
+# @app.middleware("http")
+# async def add_custom_header(request, call_next):
+#     response = await call_next(request)
+#     if response.status_code == 404:
+#         return RedirectResponse("/index.html")
+#     return response
+#
+# @app.exception_handler(404)
+# def not_found(request, exc):
+#     return RedirectResponse("/index.html")
 
 # mounting static swagger/redoc files
 api_app.mount("/static",StaticFiles(directory=SWAGGER_STATIC_PATH), name="static")
@@ -186,15 +188,21 @@ async def swagger_ui_redirect():
 
 
 @api_app.get("/redoc", include_in_schema=False)
-async def redoc_html():
+async def redoc_html(request: Request):
     return get_redoc_html(
         openapi_url="/api" + api_app.openapi_url,
         title=api_app.title + " - ReDoc",
         redoc_js_url="/api/static/redoc.standalone.js",
     )
 
-frontend_app.mount("/", StaticFiles(directory=STATIC_PATH), name="static")
-app.mount("/", frontend_app)
+frontend_app.mount("/", StaticFiles(directory=STATIC_PATH,html=True), name="static")
+app.mount("/front", frontend_app)
+#deleteme
+# intermediate = FastAPI()
+# intermediate.mount("/api",api_app)
+# app.mount("/int",intermediate)
+
+#restore me
 app.mount("/api", api_app)
 
 #
