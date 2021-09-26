@@ -24,6 +24,7 @@ from persistence import COMPONENTS, COMPONENTS_LOCK, CONFIGS_LOCK, STATUSES_LOCK
 import dotenv
 from os import environ
 
+
 dotenv.load_dotenv(".env")
 
 # LOGGING_PATH=environ["LOGGING_PATH"]
@@ -31,6 +32,7 @@ dotenv.load_dotenv(".env")
 PORT=int(environ["PORT"])
 STATIC_PATH=environ["STATIC_PATH"]
 SWAGGER_STATIC_PATH=environ["SWAGGER_STATIC_PATH"]
+LOGGING_CONFIG_INI =environ["LOGGING_CONFIG_INI"]
 #if DEBUG is present, we are debugging
 try:
     environ["DEBUG"]
@@ -40,7 +42,6 @@ except:
 
 
 def main():
-    frontend_app = FastAPI(title="frontend", docs_url=None, redoc_url=None, debug=DEBUG)
     api_app = FastAPI(title="api", docs_url=None, redoc_url=None, debug=DEBUG)
     app = FastAPI(title="main", docs_url=None, redoc_url=None, debug=DEBUG)
     # origins = ["http://localhost", "http://localhost:3000", "http://localhost:3001", "http://127.0.0.1:3000",
@@ -50,6 +51,8 @@ def main():
                        allow_headers=["*"])
 
     async def add_component(component_key, parent_key, parent_chain=None):
+        logger_back.info(f"add_component")
+        logger_back.debug(f"add_component {component_key} {parent_key} {parent_chain}")
         if not parent_chain:
             parent_chain = list()
         async with COMPONENTS_LOCK:
@@ -63,20 +66,27 @@ def main():
 
     @api_app.post("/components/{component_key}/config")
     async def set_config(component_key: int, config: ConfigIn):
+        logger_back.info(f"add_component")
+        logger_back.debug(f"add_component {component_key} {config}")
         config_dict = json.loads(config.json())
         if config.parent_key:
+            logger_back.info(f"storing config with parent {config.parent_key}")
             try:
                 parent_chain = COMPONENTS[config.parent_key]
             except KeyError:
+                logging.error("parent component not found, your parent component needs to have sent it's config prior to you sending yours")
                 raise HTTPException(status_code=404,
                                     detail="parent component not found, your parent component needs to have sent it's "
                                            "config prior to you sending yours")
             # walk down from the top of the configs to get to where we want to insert our config
             parent = None
             async with CONFIGS_LOCK:
+                #validate parent_chain
                 if parent_chain:
+                    logger_back.info("validating config chain")
                     current_config: ConfigStored = persistence.CONFIGS[parent_chain[0]]
                     for key in parent_chain[1:] + [config.parent_key]:
+                        logger_back.debug(f"current config is {current_config}")
                         try:
                             current_config = current_config.subcomponents[key]
                         except KeyError as _:
@@ -100,6 +110,7 @@ def main():
                 parent = current_config.name
                 await add_component(component_key, config.parent_key, parent_chain)
         else:
+            logger_back.info(f"storing config with no parent")
             parent = "None"
             parent_key = 0
             config_dict["parent_key"] = parent_key
@@ -112,10 +123,13 @@ def main():
     @api_app.post("/components/{component_key}/status")
     async def set_status(component_key: int, status: StatusIn):
         # json_status = jsonable_encoder(status)
+        logger_back.info(f"set_status")
+        logger_back.debug(f"set_status {component_key} {status}")
         async with CONFIGS_LOCK:
             try:
                 persistence.CONFIGS[component_key]
             except KeyError:
+                logger_back.warning(f"There is no configuration for that key, you must have a configuration for that key in order to send a status for it")
                 raise HTTPException(status_code=404,
                                     detail="There is no configuration for that key, you must have a configuration for "
                                            "that key in order to send a status for it")
@@ -128,13 +142,18 @@ def main():
 
     @api_app.get("/components/statuses", response_model=List[ComponentStatusOut])
     async def get_statuses():
+        logger_back.info(f"get_statuses")
         async with STATUSES_LOCK as a, CONFIGS_LOCK as b:
             return await parse_configs_for_statuses(persistence.CONFIGS.values())
 
     async def parse_configs_for_statuses(configs):
+        logger_back.info(f"parse_configs_for_statuses")
+        logger_back.debug(f"parse_configs_for_statuses {configs}")
         built_statuses = []
         for config in configs:
+            logger_back.debug(f"parsing {config}")
             status_list = persistence.STATUSES[config.key]
+            logger_back.debug(f"got statuses {status_list}")
             if not status_list:
                 return []
             status = status_list[-1]
@@ -145,6 +164,8 @@ def main():
         return built_statuses
 
     async def build_status(config: ConfigStored, status: StatusIn):
+        logger_back.info(f"build_status")
+        logger_back.debug(f"build_status {config} {status}")
         timeout_config = ComponentTimeoutConfig(timeout_min=config.timeout_min, timeout_color=config.timeout_color)
         component_status = ComponentStatusOut(name=config.name, details=config.details, date=status.date,
                                               status=status.color, config=timeout_config, status_message=status.message,
@@ -153,20 +174,9 @@ def main():
 
     @api_app.get("/ping")
     def pong():
+        logger_back.info("ping")
         return {"ping": "pong!"}
 
-    # @app.middleware("http")
-    # async def add_custom_header(request, call_next):
-    #     response = await call_next(request)
-    #     if response.status_code == 404:
-    #         return RedirectResponse("/index.html")
-    #     return response
-    #
-    # @app.exception_handler(404)
-    # def not_found(request, exc):
-    #     return RedirectResponse("/index.html")
-    # mounting static swagger/redoc files
-    api_app.mount("/static", StaticFiles(directory=SWAGGER_STATIC_PATH), name="static")
 
     @api_app.get("/docs", include_in_schema=False)
     async def custom_swagger_ui_html():
@@ -193,25 +203,16 @@ def main():
 
     app.mount("/api", api_app)
 
-    frontend_app.mount("/", StaticFiles(directory=STATIC_PATH, html=True), name="static")
-    app.mount("/front", frontend_app)
-    # deleteme
-    # intermediate = FastAPI()
-    # intermediate.mount("/api",api_app)
-    # app.mount("/int",intermediate)
-    # restore me
-    #
-    # @app.get("/models/{model_name}")
-    # async def get_model(model_name: ModelName):
-    #
-    #     return {"model_name": model_name, "message": "Have some residuals"}
+    app.mount("/", StaticFiles(directory=STATIC_PATH, html=True), name="static")
+
     return app
 
 
 if __name__ == "__main__":
     #setup logging from file
-    fileConfig('logging.config.ini')
-    logger = logging.getLogger()
+    fileConfig(LOGGING_CONFIG_INI)
+    logger_front = logging.getLogger("SSFront")
+    logger_back = logging.getLogger("SSBack")
     import uvicorn
 
     app = main()

@@ -30,6 +30,7 @@ RUN npm run build
 #settings that theoretically should not change
 EXPOSE 80
 ENV PORT=80
-ENV LOGGING_PATH=/tmp/ss.log
 ENV STATIC_PATH=/SimpleStatusWeb/build
-ENV STATIC_PATH=/SimpleStatusWeb/swagger
+ENV SWAGGER_STATIC_PATH=/SimpleStatusWeb/swagger
+ENV DEBUG=true
+ENV LOGGING_CONFIG_INI="logging.config.ini"
