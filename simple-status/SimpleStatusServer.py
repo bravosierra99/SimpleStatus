@@ -191,6 +191,8 @@ def main():
             redoc_js_url="/api/static/redoc.standalone.js",
         )
 
+    app.mount("/api", api_app)
+
     frontend_app.mount("/", StaticFiles(directory=STATIC_PATH, html=True), name="static")
     app.mount("/front", frontend_app)
     # deleteme
@@ -198,14 +200,12 @@ def main():
     # intermediate.mount("/api",api_app)
     # app.mount("/int",intermediate)
     # restore me
-    app.mount("/api", api_app)
     #
     # @app.get("/models/{model_name}")
     # async def get_model(model_name: ModelName):
     #
     #     return {"model_name": model_name, "message": "Have some residuals"}
     return app
-
 
 
 if __name__ == "__main__":
