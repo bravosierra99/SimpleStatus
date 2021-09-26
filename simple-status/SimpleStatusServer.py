@@ -195,15 +195,15 @@ async def redoc_html(request: Request):
         redoc_js_url="/api/static/redoc.standalone.js",
     )
 
-frontend_app.mount("/", StaticFiles(directory=STATIC_PATH,html=True), name="static")
-app.mount("/front", frontend_app)
+app.mount("/api", api_app)
+# frontend_app.mount("/", StaticFiles(directory=STATIC_PATH,html=True), name="static")
+app.mount("/", StaticFiles(directory=STATIC_PATH,html=True), name="static")
 #deleteme
 # intermediate = FastAPI()
 # intermediate.mount("/api",api_app)
 # app.mount("/int",intermediate)
 
 #restore me
-app.mount("/api", api_app)
 
 #
 # @app.get("/models/{model_name}")
