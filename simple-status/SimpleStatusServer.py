@@ -201,6 +201,7 @@ def main():
             redoc_js_url="/api/static/redoc.standalone.js",
         )
 
+    api_app.mount("/static", StaticFiles(directory=SWAGGER_STATIC_PATH), name='swagger')
     app.mount("/api", api_app)
 
     app.mount("/", StaticFiles(directory=STATIC_PATH, html=True), name="static")
