@@ -3,9 +3,19 @@ FROM tiangolo/uvicorn-gunicorn-fastapi:python3.8
 
 
 #all initialization that hopefully will change infrequently
-RUN apt-get update && apt-get -yq install npm node.js
+#RUN apt-get update && apt-get -yq install npm node.js
 RUN python -m pip install aiofiles
-
+#shamelessly stolen from the internet... node was taking forever to install and supposedly this is better
+ENV NODE_VERSION=12.6.0
+RUN apt install -y curl
+RUN curl -o- https://raw.githubusercontent.com/creationix/nvm/v0.34.0/install.sh | bash
+ENV NVM_DIR=/root/.nvm
+RUN . "$NVM_DIR/nvm.sh" && nvm install ${NODE_VERSION}
+RUN . "$NVM_DIR/nvm.sh" && nvm use v${NODE_VERSION}
+RUN . "$NVM_DIR/nvm.sh" && nvm alias default v${NODE_VERSION}
+ENV PATH="/root/.nvm/versions/node/v${NODE_VERSION}/bin/:${PATH}"
+RUN node --version
+RUN npm --version
 
 #make a directory for the static files and install dependencies
 RUN mkdir /SimpleStatusWeb
