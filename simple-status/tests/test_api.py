@@ -15,9 +15,9 @@ COMPONENTS = "components"
 
 
 
-def test_set_config_single(test_app):
+def test_set_config_single(test_app, api_url):
     component_key = 1
-    url = yarl.URL(COMPONENTS) / str(component_key) / CONFIG
+    url = yarl.URL(api_url) / COMPONENTS / str(component_key) / CONFIG
     first = {
         "name": "first",
         "parent_key": 0,
@@ -30,10 +30,10 @@ def test_set_config_single(test_app):
     assert result.json()["config"]["key"] == component_key
 
 
-def test_set_status_single(test_app):
-    setup_some_configs(test_app)
+def test_set_status_single(test_app, api_url):
+    setup_some_configs(test_app, api_url)
     component_key = 1
-    set_status_url = yarl.URL(COMPONENTS) / str(component_key) / STATUS
+    set_status_url = yarl.URL(api_url) / COMPONENTS / str(component_key) / STATUS
     status_json = {
         "color": Colors.green.name,
         "date": datetime.now().isoformat(),
@@ -46,13 +46,13 @@ def test_set_status_single(test_app):
     assert json_result['status'] == status_json
 
 
-def test_get_statuses(test_app):
-    setup_some_configs(test_app)
-    setup_some_statuses(test_app)
+def test_get_statuses(test_app, api_url):
+    setup_some_configs(test_app, api_url)
+    setup_some_statuses(test_app, api_url)
 
 
     # ok now that we have statuses let's check to make sure they look correct
-    get_status_url = yarl.URL(COMPONENTS) / STATUSES
+    get_status_url = yarl.URL(api_url) / COMPONENTS / STATUSES
     result: requests.Response = test_app.get(str(get_status_url))
     assert result.status_code == 200
     statuses = json.loads(result.content)
@@ -61,7 +61,7 @@ def test_get_statuses(test_app):
 
 
 
-def setup_some_statuses(test_app):
+def setup_some_statuses(test_app, api_url):
     # ok first we need to build up some configs
     params = [
         [1, Colors.green.name, datetime.now().isoformat(), "Everything is awesome"],
@@ -73,7 +73,7 @@ def setup_some_statuses(test_app):
         component_key = param[0]
         status = StatusIn(color=param[1], date=param[2], message=param[3])
 
-        url = yarl.URL(COMPONENTS) / str(component_key) / STATUS
+        url = yarl.URL(api_url) / COMPONENTS / str(component_key) / STATUS
 
         status_json = json.loads(status.json())
         result: requests.Response = test_app.post(str(url), json=status_json)
@@ -83,13 +83,13 @@ def setup_some_statuses(test_app):
         assert json_result['status'] == status_json
 
 
-def setup_some_configs(test_app):
+def setup_some_configs(test_app, api_url):
     # ok first we need to build up some configs
     params = [
         [1, "first", 0, "first details", 1, "yellow"],
         [2, "second", 0, "second details", 1, "yellow"],
         [12, "first second", 1, "first second details", 100, "yellow"],
-        [123, "first second third", 2, "first second third details", 200, "red"],
+        [123, "first second third", 12, "first second third details", 200, "red"],
     ]
     for param in params:
         component_key = param[0]
@@ -100,7 +100,7 @@ def setup_some_configs(test_app):
             "timeout_min": param[4],
             "timeout_color": param[5]
         }
-        url = yarl.URL(COMPONENTS) / str(component_key) / CONFIG
+        url = yarl.URL(api_url) / COMPONENTS / str(component_key) / CONFIG
 
         result: requests.Response = test_app.post(str(url), json=json_config)
         assert result.status_code == 200
