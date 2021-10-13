@@ -40,6 +40,11 @@ try:
 except:
     DEBUG=False
 
+#setup logging from file
+fileConfig(LOGGING_CONFIG_INI)
+logger_front = logging.getLogger("SSFront")
+logger_back = logging.getLogger("SSBack")
+
 
 def main():
     api_app = FastAPI(title="api", docs_url=None, redoc_url=None, debug=DEBUG)
@@ -210,10 +215,7 @@ def main():
 
 
 if __name__ == "__main__":
-    #setup logging from file
-    fileConfig(LOGGING_CONFIG_INI)
-    logger_front = logging.getLogger("SSFront")
-    logger_back = logging.getLogger("SSBack")
+
     import uvicorn
 
     app = main()
