@@ -132,7 +132,14 @@ def main():
         logger_back.debug(f"set_status {component_key} {status}")
         async with CONFIGS_LOCK:
             try:
-                persistence.CONFIGS[component_key]
+                parent_chain = persistence.COMPONENTS[component_key]
+                if parent_chain:
+                    current_config = persistence.CONFIGS[parent_chain[0]]
+                    parent_chain = parent_chain[1:]
+                    for key in parent_chain:
+                        current_config = current_config.subcomponents[key]
+                else:
+                    persistence.CONFIGS[component_key]
             except KeyError:
                 logger_back.warning(f"There is no configuration for that key, you must have a configuration for that key in order to send a status for it")
                 raise HTTPException(status_code=404,
