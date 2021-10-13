@@ -47,7 +47,8 @@ function StatusDate(props) {
       >
         <div className={styles.time}>{time}</div>
         <div className={styles.date}>
-          {day} {month} {year}
+          <div className={styles.day}>{day} {month}</div>
+           {year}
         </div>
       </div>
       <Popup open={open} closeOnDocumentClick onClose={closeModal}>
