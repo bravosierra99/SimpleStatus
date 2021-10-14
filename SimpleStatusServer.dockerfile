@@ -43,4 +43,4 @@ ENV PORT=80
 ENV STATIC_PATH=/SimpleStatusWeb/build
 ENV SWAGGER_STATIC_PATH=/SimpleStatusWeb/swagger
 ENV DEBUG=true
-ENV LOGGING_CONFIG_INI="logging.config.ini"
+ENV LOGGING_CONFIG_INI="/app/logging.config.ini"
