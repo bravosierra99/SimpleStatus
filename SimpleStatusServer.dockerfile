@@ -42,5 +42,8 @@ EXPOSE 80
 ENV PORT=80
 ENV STATIC_PATH=/SimpleStatusWeb/build
 ENV SWAGGER_STATIC_PATH=/SimpleStatusWeb/swagger
-ENV DEBUG=true
+# ENV DEBUG=true # this will enable debug mode always, otherwise pass on the command line
 ENV LOGGING_CONFIG_INI="/app/logging.config.ini"
+# not loving this, but the -k gevent is not working, I'm using an in memory data structure so I can't have gunicorn spawning workers in processes.  So single process it is
+ENV WEB_CONCURRENCY="1"
+# ENV GUNICORN_CMD_ARGS="-k gevent"

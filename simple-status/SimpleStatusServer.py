@@ -20,7 +20,6 @@ from starlette.responses import FileResponse, RedirectResponse
 
 import persistence
 from models import ConfigIn, ConfigStored, StatusIn, ComponentStatusOut, ComponentTimeoutConfig
-from persistence import COMPONENTS, COMPONENTS_LOCK, CONFIGS_LOCK, STATUSES_LOCK, MODIFIED_LOCK
 import dotenv
 from os import environ
 
@@ -45,6 +44,10 @@ fileConfig(LOGGING_CONFIG_INI)
 logger_front = logging.getLogger("SSFront")
 logger_back = logging.getLogger("SSBack")
 
+if DEBUG:
+    logger_back.setLevel(logging.DEBUG)
+    logger_front.setLevel(logging.DEBUG)
+
 
 def main():
     api_app = FastAPI(title="api", docs_url=None, redoc_url=None, debug=DEBUG)
@@ -60,13 +63,13 @@ def main():
         logger_back.debug(f"add_component {component_key} {parent_key} {parent_chain}")
         if not parent_chain:
             parent_chain = list()
-        async with COMPONENTS_LOCK:
+        async with persistence.COMPONENTS_LOCK:
             # add a component with an updated chain
             if parent_key:
                 persistence.COMPONENTS[component_key] = parent_chain + [parent_key]
             else:
                 persistence.COMPONENTS[component_key] = parent_chain
-            async with MODIFIED_LOCK:
+            async with persistence.MODIFIED_LOCK:
                 persistence.MODIFIED = True
 
     @api_app.post("/components/{component_key}/config")
@@ -77,7 +80,8 @@ def main():
         if config.parent_key:
             logger_back.info(f"storing config with parent {config.parent_key}")
             try:
-                parent_chain = COMPONENTS[config.parent_key]
+                async with persistence.COMPONENTS_LOCK:
+                    parent_chain = persistence.COMPONENTS[config.parent_key]
             except KeyError:
                 logging.error("parent component not found, your parent component needs to have sent it's config prior to you sending yours")
                 raise HTTPException(status_code=404,
@@ -85,7 +89,7 @@ def main():
                                            "config prior to you sending yours")
             # walk down from the top of the configs to get to where we want to insert our config
             parent = None
-            async with CONFIGS_LOCK:
+            async with persistence. CONFIGS_LOCK:
                 #validate parent_chain
                 if parent_chain:
                     logger_back.info("validating config chain")
@@ -121,7 +125,7 @@ def main():
             config_dict["parent_key"] = parent_key
             await add_component(component_key, parent_key)
             stored_config = ConfigStored(**config_dict, key=component_key)
-            async with CONFIGS_LOCK:
+            async with persistence.CONFIGS_LOCK:
                 persistence.CONFIGS[component_key] = stored_config
         return {"config": stored_config, "parent": parent}
 
@@ -130,9 +134,10 @@ def main():
         # json_status = jsonable_encoder(status)
         logger_back.info(f"set_status")
         logger_back.debug(f"set_status {component_key} {status}")
-        async with CONFIGS_LOCK:
+        async with persistence.CONFIGS_LOCK:
             try:
-                parent_chain = persistence.COMPONENTS[component_key]
+                async with persistence.COMPONENTS_LOCK:
+                    parent_chain = persistence.COMPONENTS[component_key]
                 if parent_chain:
                     current_config = persistence.CONFIGS[parent_chain[0]]
                     parent_chain = parent_chain[1:]
@@ -140,22 +145,25 @@ def main():
                         current_config = current_config.subcomponents[key]
                 else:
                     persistence.CONFIGS[component_key]
-            except KeyError:
+            except KeyError as e:
                 logger_back.warning(f"There is no configuration for that key, you must have a configuration for that key in order to send a status for it")
+                logger_back.debug(f"components: {persistence.COMPONENTS}")
+                logger_back.debug(f"configs: {persistence.CONFIGS}")
+                logger_back.error(str(e))
                 raise HTTPException(status_code=404,
                                     detail="There is no configuration for that key, you must have a configuration for "
                                            "that key in order to send a status for it")
-        async with STATUSES_LOCK:
+        async with persistence.STATUSES_LOCK:
             status_list = persistence.STATUSES[component_key]
             status_list.append(status)
-            async with MODIFIED_LOCK:
+            async with persistence.MODIFIED_LOCK:
                 persistence.MODIFIED = True
         return {"component_key": component_key, "status": status}
 
     @api_app.get("/components/statuses", response_model=List[ComponentStatusOut])
     async def get_statuses():
         logger_back.info(f"get_statuses")
-        async with STATUSES_LOCK as a, CONFIGS_LOCK as b:
+        async with persistence.STATUSES_LOCK as a, persistence.CONFIGS_LOCK as b:
             return await parse_configs_for_statuses(persistence.CONFIGS.values())
 
     async def parse_configs_for_statuses(configs):
