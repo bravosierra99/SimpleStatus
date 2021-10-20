@@ -175,7 +175,7 @@ def main():
             status_list = persistence.STATUSES[config.key]
             logger_back.debug(f"got statuses {status_list}")
             if not status_list:
-                return []
+                return built_statuses
             status = status_list[-1]
             built_status = await  build_status(config, status)
             substatuses = await parse_configs_for_statuses(config.subcomponents.values())
