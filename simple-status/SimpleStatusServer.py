@@ -129,6 +129,53 @@ def main():
                 persistence.CONFIGS[component_key] = stored_config
         return {"config": stored_config, "parent": parent}
 
+
+
+    @api_app.get("/components/{component_key}/status/clear")
+    async def clear_statuses(component_key: int):
+        """
+        this will clear the entire status history
+        :param component_key: the unique component_id
+        :return:
+        """
+        logger_back.info(f"clear_status {component_key}")
+        component_name = ""
+        async with persistence.CONFIGS_LOCK:
+            try:
+                component_name = persistence.CONFIGS[component_key].name
+            #generally speaking just fail gracefully if they are trying to clear something that doesn't exist
+            except (KeyError, AttributeError):
+                return(f"unable to find config for {component_key}")
+
+        async with persistence.STATUSES_LOCK:
+            status_list = persistence.STATUSES.get(component_key,[])
+            num_statuses = len(status_list)
+            persistence.STATUSES[component_key] = []
+            async with persistence.MODIFIED_LOCK:
+                persistence.MODIFIED = True
+        return {f"cleared {num_statuses} statuses for {component_key} name {component_name}"}
+
+    @api_app.get("/components/statuses/clear")
+    async def clear_all_statuses():
+        """
+        this will clear the entire status history
+        :param component_key: the unique component_id
+        :return:
+        """
+        logger_back.info(f"clear_all_status")
+
+        async with persistence.STATUSES_LOCK:
+            num_statuses = 0
+            num_keys = len(persistence.STATUSES)
+            for component_key in persistence.STATUSES:
+                status_list = persistence.STATUSES.get(component_key,[])
+                logger_back.debug(f"clearing {status_list} for {component_key}")
+                num_statuses += len(status_list)
+                persistence.STATUSES[component_key] = []
+            async with persistence.MODIFIED_LOCK:
+                persistence.MODIFIED = True
+        return {f"cleared {num_statuses} statuses for {num_keys} components"}
+
     @api_app.post("/components/{component_key}/status")
     async def set_status(component_key: int, status: StatusIn):
         # json_status = jsonable_encoder(status)
@@ -165,6 +212,8 @@ def main():
         logger_back.info(f"get_statuses")
         async with persistence.STATUSES_LOCK as a, persistence.CONFIGS_LOCK as b:
             return await parse_configs_for_statuses(persistence.CONFIGS.values())
+
+
 
     async def parse_configs_for_statuses(configs):
         logger_back.info(f"parse_configs_for_statuses")
