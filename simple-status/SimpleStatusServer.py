@@ -132,20 +132,19 @@ def main():
 
 
     @api_app.get("/components/{component_key}/status/clear")
-    async def clear_statuses(component_key: int):
+    async def clear_statuses(component_key: int) -> str:
         """
         this will clear the entire status history
         :param component_key: the unique component_id
         :return:
         """
         logger_back.info(f"clear_status {component_key}")
-        component_name = ""
-        async with persistence.CONFIGS_LOCK:
-            try:
-                component_name = persistence.CONFIGS[component_key].name
-            #generally speaking just fail gracefully if they are trying to clear something that doesn't exist
-            except (KeyError, AttributeError):
-                return(f"unable to find config for {component_key}")
+        try:
+            config = await persistence.retrieve_config(component_key)
+            component_name = config.name
+        except persistence.PersistenceError:
+            return (f"unable to find config for {component_key}")
+
 
         async with persistence.STATUSES_LOCK:
             status_list = persistence.STATUSES.get(component_key,[])
@@ -181,31 +180,16 @@ def main():
         # json_status = jsonable_encoder(status)
         logger_back.info(f"set_status")
         logger_back.debug(f"set_status {component_key} {status}")
-        async with persistence.CONFIGS_LOCK:
-            try:
-                async with persistence.COMPONENTS_LOCK:
-                    parent_chain = persistence.COMPONENTS[component_key]
-                if parent_chain:
-                    current_config = persistence.CONFIGS[parent_chain[0]]
-                    parent_chain = parent_chain[1:]
-                    for key in parent_chain:
-                        current_config = current_config.subcomponents[key]
-                else:
-                    persistence.CONFIGS[component_key]
-            except KeyError as e:
-                logger_back.warning(f"There is no configuration for that key, you must have a configuration for that key in order to send a status for it")
-                logger_back.debug(f"components: {persistence.COMPONENTS}")
-                logger_back.debug(f"configs: {persistence.CONFIGS}")
-                logger_back.error(str(e))
-                raise HTTPException(status_code=404,
-                                    detail="There is no configuration for that key, you must have a configuration for "
-                                           "that key in order to send a status for it")
+        #don't actually want the config, just want to make sure that the configs are there
+        await persistence.retrieve_config(component_key)
         async with persistence.STATUSES_LOCK:
             status_list = persistence.STATUSES[component_key]
             status_list.append(status)
             async with persistence.MODIFIED_LOCK:
                 persistence.MODIFIED = True
         return {"component_key": component_key, "status": status}
+
+
 
     @api_app.get("/components/statuses", response_model=List[ComponentStatusOut])
     async def get_statuses():
@@ -224,7 +208,7 @@ def main():
             status_list = persistence.STATUSES[config.key]
             logger_back.debug(f"got statuses {status_list}")
             if not status_list:
-                return built_statuses
+                continue
             status = status_list[-1]
             built_status = await  build_status(config, status)
             substatuses = await parse_configs_for_statuses(config.subcomponents.values())
