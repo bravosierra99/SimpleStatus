@@ -9,7 +9,7 @@ import "./Status.css";
 
 function Status(props) {
   const subs = props.subcomponents ? props.subcomponents : [];
-  const date = typeof(props.date) === Date ? props.date : new Date(props.date)
+  const date = typeof props.date === Date ? props.date : new Date(props.date);
   const [expanded, setexpanded] = useState(false);
   const substatus =
     expanded && subs ? (
@@ -39,31 +39,36 @@ function Status(props) {
       />
     );
   const collapseButton = expanded ? (
-    <div className={styles.border}>
+    // <div className={styles.border}>
       <button className={styles.button} onClick={() => setexpanded(!expanded)}>
         collapse
       </button>
-    </div>
+    // </div>
   ) : null;
-  return (
-    <div className={styles.border}>
-      {/* <div className={styles.status}> */}
-      <div style={{ width: "fit-content" }} className={styles.status}>
-        <StatusName name={props.name} details={props.details} />
-        <StatusDate
-          clickHandler={setexpanded}
-          config={props.config}
-          statusMessage={props.status_message}
-          date={date}
-          color={props.status}
-        />
-        {collapseButton}
 
-        <div className={styles.break} />
-        {/* <SubStatusList statuses={props.subcomponents} /> */}
-        {substatus}
-        {/* <StatusGrid statuses={subs} /> */}
+  const style = !expanded ? styles.status : styles.status_expanded;
+  const top_row_style = !expanded ? styles.status_top_row : styles.status_top_row_expanded;
+  return (
+    <div className={style}>
+      <div className={top_row_style}>
+        <div className={styles.status_name}>
+          <StatusName name={props.name} details={props.details} />
+        </div>
+        <div className={style.status_date}>
+          <StatusDate
+            clickHandler={setexpanded}
+            config={props.config}
+            statusMessage={props.status_message}
+            date={date}
+            color={props.status}
+          />
+        </div>
+        {collapseButton}
       </div>
+      {/* <div className={styles.break} /> */}
+      {/* <SubStatusList statuses={props.subcomponents} /> */}
+      <div className={styles.status_sub_list}>{substatus}</div>
+      {/* <StatusGrid statuses={subs} /> */}
     </div>
   );
 }

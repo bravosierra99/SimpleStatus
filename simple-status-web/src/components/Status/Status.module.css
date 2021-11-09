@@ -1,15 +1,47 @@
 .status {
   composes: card from "../UI/Card.module.css";
-  width: 250px;
-  /* width:100%; */
+  width: 18rem;
   font-weight: "bold";
   display: flex;
   flex-wrap: wrap;
   justify-content: flex-start;
   align-items: center;
   background-color: rgba(225, 0, 255, 0.178);
-  padding: 0.5rem;
-  margin: 1rem 0;
+  padding: 1rem;
+  margin: 1rem 1rem;
+}
+
+.status_expanded {
+  composes: status;
+  width: max-content;
+  width: min-content;
+  grid-template-columns: 10rem 7rem 1fr;
+  grid-template-rows: 10rem 1fr;
+}
+
+.status_top_row {
+  display: grid;
+  justify-items: center;
+  grid-template-columns: 10rem 7rem;
+  grid-template-rows: 1fr;
+}
+
+.status_top_row_expanded {
+  composes: status_top_row;
+  grid-template-columns: 10rem 7rem 7rem;
+}
+
+.status_name {
+  grid-column: 1;
+  grid-row: 1;
+}
+.status_date {
+  grid-column: 2;
+  grid-row: 1;
+}
+
+.status_sub_list {
+  flex-basis: 100%;
 }
 
 .border {
@@ -21,13 +53,17 @@
 }
 
 .button {
+  width: 7rem;
   background-color: #4caf50; /* Green */
   border: 10px transparent solid;
   color: white;
-  padding: 15px 32px;
+  padding: 1rem 1rem;
   text-align: center;
   text-decoration: none;
   display: inline-block;
   font-size: 16px;
   border-radius: 12px;
+  grid-column: 3;
+  grid-row: 1;
+  margin: 1rem;
 }
