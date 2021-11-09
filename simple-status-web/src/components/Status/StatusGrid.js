@@ -9,8 +9,9 @@ function StatusGrid(props) {
   // }
 
   useEffect(() => {
-    const interval = setInterval(() => {
-    fetch("http://localhost/api/components/statuses")
+
+  function fetch_status(){ fetch("api/components/statuses"
+    )
       .then((statuses) => {
         return statuses.json();
       })
@@ -24,6 +25,12 @@ function StatusGrid(props) {
 
         setStatuses(StatusObjects);
       });
+    }
+
+    fetch_status();
+
+    const interval = setInterval(() => {
+      fetch_status()
     },5000);
     return () => clearInterval(interval);
   }, []);

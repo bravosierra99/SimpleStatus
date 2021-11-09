@@ -8,7 +8,8 @@ from pathlib import Path
 from typing import List
 
 from fastapi import FastAPI, HTTPException, Request
-from fastapi.middleware.cors import CORSMiddleware
+# from fastapi.middleware.cors import CORSMiddleware
+from starlette.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.openapi.docs import (
     get_redoc_html,
@@ -55,8 +56,8 @@ def main():
     # origins = ["http://localhost", "http://localhost:3000", "http://localhost:3001", "http://127.0.0.1:3000",
     # "http://127.0.0.1:3001"]
     origins = ["*"]
-    app.add_middleware(CORSMiddleware, allow_origins=origins, allow_credentials=True, allow_methods=["*"],
-                       allow_headers=["*"])
+    # app.add_middleware(CORSMiddleware, allow_origins=origins, allow_credentials=True, allow_methods=["*"],
+    #                    allow_headers=["*"])
 
     async def add_component(component_key, parent_key, parent_chain=None):
         logger_back.info(f"add_component")
