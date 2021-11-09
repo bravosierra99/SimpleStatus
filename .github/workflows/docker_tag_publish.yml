@@ -2,7 +2,9 @@ name: Publish Docker image
 
 on:
   release:
-    types: [released,edited]
+    types: 
+      - released
+      - edited
 
 jobs:
   push_to_registry:
