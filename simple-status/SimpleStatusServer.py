@@ -5,7 +5,7 @@ import json
 import logging
 from logging.config import fileConfig
 from pathlib import Path
-from typing import List
+from typing import List, Dict
 
 from fastapi import FastAPI, HTTPException, Request
 # from fastapi.middleware.cors import CORSMiddleware
@@ -139,6 +139,15 @@ def main():
         del config_dict["key"]
         config_in = ConfigIn(**config_dict)
         return config_in
+
+
+    @api_app.get("/components/configs",response_model=Dict[int,ConfigStored])
+    async def get_configs():
+        logger_back.info(f"get_configs")
+        async with persistence.CONFIGS_LOCK:
+            return persistence.CONFIGS
+
+
 
 
 
