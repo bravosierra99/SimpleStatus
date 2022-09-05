@@ -67,3 +67,7 @@
   grid-row: 1;
   margin: 1rem;
 }
+
+.button:hover {
+  border: 5px solid #ff03a7ce;
+}
