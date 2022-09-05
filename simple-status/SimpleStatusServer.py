@@ -5,7 +5,7 @@ import json
 import logging
 from logging.config import fileConfig
 from pathlib import Path
-from typing import List
+from typing import List, Dict
 
 from fastapi import FastAPI, HTTPException, Request
 # from fastapi.middleware.cors import CORSMiddleware
@@ -129,6 +129,26 @@ def main():
             async with persistence.CONFIGS_LOCK:
                 persistence.CONFIGS[component_key] = stored_config
         return {"config": stored_config, "parent": parent}
+
+    @api_app.get("/components/{component_key}/config",response_model=ConfigIn)
+    async def get_config(component_key:int):
+        logger_back.info(f"get_config")
+        logger_back.debug(f"get_config {component_key}")
+        stored_config = persistence.CONFIGS[component_key]
+        config_dict = stored_config.dict()
+        del config_dict["key"]
+        config_in = ConfigIn(**config_dict)
+        return config_in
+
+
+    @api_app.get("/components/configs",response_model=Dict[int,ConfigStored])
+    async def get_configs():
+        logger_back.info(f"get_configs")
+        async with persistence.CONFIGS_LOCK:
+            return persistence.CONFIGS
+
+
+
 
 
 
