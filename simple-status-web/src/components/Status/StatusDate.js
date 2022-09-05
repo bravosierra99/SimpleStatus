@@ -13,7 +13,7 @@ function time_values(date) {
   return { month, day, year, time };
 }
 
-function timed_out(date, timeout) {
+export function timed_out(date, timeout) {
   const today = new Date();
   const diff = Math.abs(today - date) / (1000 * 60);
   return timeout ? diff > timeout : false;
