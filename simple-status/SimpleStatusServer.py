@@ -130,6 +130,17 @@ def main():
                 persistence.CONFIGS[component_key] = stored_config
         return {"config": stored_config, "parent": parent}
 
+    @api_app.get("/components/{component_key}/config",response_model=ConfigIn)
+    async def get_config(component_key:int):
+        logger_back.info(f"get_config")
+        logger_back.debug(f"get_config {component_key}")
+        stored_config = persistence.CONFIGS[component_key]
+        config_dict = stored_config.dict()
+        del config_dict["key"]
+        config_in = ConfigIn(**config_dict)
+        return config_in
+
+
 
 
     @api_app.get("/components/{component_key}/status/clear")
