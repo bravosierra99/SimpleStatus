@@ -2,4 +2,12 @@
   width: 150px;
   word-wrap: break-word;
   padding-right: 1rem;
+  border: 5px solid transparent;
+  border-radius: 5px;
+}
+
+.name:hover {
+  border: 5px solid #ff03a7ce;
+  border-radius: 5px;
+  /* margin: -5px; */
 }
